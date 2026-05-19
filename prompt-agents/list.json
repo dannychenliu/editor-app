@@ -1,0 +1,13 @@
+[
+    "general_chat",
+    "draft_to_outline",
+    "outline_to_scene",
+    "scene_to_summary",
+    "proofread",
+    "humor_check",
+    "standard_diagnosis",
+    "character_reactions",
+    "shrink",
+    "expand",
+    "rewrite"
+]
