@@ -134,10 +134,8 @@ function App() {
     const storedKey = localStorage.getItem('novel_editor_api_key');
     if (storedKey) {
       setApiKey(storedKey);
-    } else if (!apiKey) {
-      // 兩邊都沒有 key，彈出視窗讓使用者輸入
-      setShowKeyModal(true);
     }
+    // 不自動彈出視窗，使用者可透過側邊欄 🔑 按鈕手動設定
   }
 
   async function fetchAgents() {
