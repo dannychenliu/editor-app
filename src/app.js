@@ -96,6 +96,7 @@ function App() {
   const [modelQuery, setModelQuery] = useState('');
   const [favoriteModels, setFavoriteModels] = useState([]);
   const [dragOverTabId, setDragOverTabId] = useState(null);
+  const [sidebarWidth, setSidebarWidth] = useState(240);
 
   // abortRef is a Map: tabId -> AbortController
   const abortMap = useRef({});
@@ -221,6 +222,40 @@ function App() {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  // ── Sidebar resize ────────────────────────────────────────
+  const resizeRef = useRef(null);
+  const isResizingRef = useRef(false);
+  const startXRef = useRef(0);
+  const startWRef = useRef(0);
+
+  function handleResizeStart(e) {
+    e.preventDefault();
+    isResizingRef.current = true;
+    startXRef.current = e.clientX;
+    startWRef.current = sidebarWidth;
+    document.body.classList.add('resizing');
+  }
+
+  useEffect(() => {
+    function handleMouseMove(e) {
+      if (!isResizingRef.current) return;
+      const dx = e.clientX - startXRef.current;
+      const newW = Math.max(160, Math.min(480, startWRef.current + dx));
+      setSidebarWidth(newW);
+    }
+    function handleMouseUp() {
+      if (!isResizingRef.current) return;
+      isResizingRef.current = false;
+      document.body.classList.remove('resizing');
+    }
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [sidebarWidth]);
 
   // ── Tab helpers ───────────────────────────────────────────
   const activeTab = useMemo(() => tabs.find(t => t.id === activeTabId), [tabs, activeTabId]);
@@ -459,7 +494,7 @@ function App() {
   return React.createElement(React.Fragment, null,
 
     // Sidebar
-    React.createElement('aside', { className: 'sidebar' },
+    React.createElement('aside', { className: 'sidebar', style: { width: sidebarWidth + 'px' } },
       React.createElement('div', { className: 'sidebar-header' },
         React.createElement('div', { className: 'sidebar-logo' }, '✍️'),
         React.createElement('div', { className: 'sidebar-title-wrap' },
@@ -532,6 +567,11 @@ function App() {
           )
         ),
       ),
+      React.createElement('div', {
+        ref: resizeRef,
+        className: 'sidebar-resize-handle',
+        onMouseDown: handleResizeStart,
+      }),
     ),
 
     // Main
