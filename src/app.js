@@ -303,6 +303,8 @@ function App() {
 
     const agent = agents.find(a => a.id === agentId);
     const systemMsg = [globalPrompt, agent?.prompt || ''].filter(Boolean).join('\n\n');
+    const agentName = agent?.name || '';
+    const modelName = models.find(m => m.id === modelId)?.name || modelId;
 
     const isRewriteAgent = ['改寫', '縮減', '精簡', '擴寫'].some(kw => agent?.name?.includes(kw));
 
@@ -342,6 +344,7 @@ function App() {
     // ─────────────────────────────────────────────────────────
 
     const userMsg = { role: 'user', content: userContent, _display: { field1: field1Enabled ? field1 : '', targetText: isRewriteAgent ? targetText : '', field2, wordCount } };
+    const aiMsgMeta = { _agentName: agentName, _modelName: modelName };
     const aiId = genId();
 
     setTabs(prev => prev.map(t => t.id === tabId ? {
@@ -351,7 +354,7 @@ function App() {
       targetText: '',
       wordCount: '',          // ← 送出後清空目標字數
       field1Enabled: false,   // ← 送出後自動關閉原文
-      messages: [...t.messages, userMsg, { role: 'assistant', content: '', _id: aiId, _streaming: true }],
+      messages: [...t.messages, userMsg, { role: 'assistant', content: '', _id: aiId, _streaming: true, ...aiMsgMeta }],
     } : t));
 
     const ctrl = new AbortController();
@@ -517,7 +520,6 @@ function App() {
               onClick: e => e.stopPropagation(),
               title: '長按拖曳調整順序',
             }, '⠿'),
-            React.createElement('span', { className: 'tab-item-icon' }, tab.streaming ? '⏳' : '📄'),
             React.createElement('div', { className: 'tab-item-info' },
               React.createElement('div', { className: 'tab-item-name' }, tab.agentName || '新對話'),
               React.createElement('div', { className: 'tab-item-model' }, models.find(m => m.id === tab.modelId)?.name || '請選擇模型')
@@ -853,6 +855,9 @@ function UserBubble({ msg }) {
 // ── AiBubble ─────────────────────────────────────────────────
 function AiBubble({ msg, toast }) {
   const [copied, setCopied] = useState(false);
+  const label = msg._agentName || msg._modelName
+    ? [msg._agentName, msg._modelName].filter(Boolean).join(' · ')
+    : 'AI 助手';
 
   function copy() {
     navigator.clipboard.writeText(msg.content).then(() => {
@@ -866,7 +871,7 @@ function AiBubble({ msg, toast }) {
   return React.createElement('div', { className: 'message message-ai' },
     React.createElement('div', { className: 'ai-avatar' }, '✦'),
     React.createElement('div', { className: 'bubble-wrap' },
-      React.createElement('div', { className: 'bubble-label' }, 'AI 助手'),
+      React.createElement('div', { className: 'bubble-label' }, label),
       React.createElement('div', { className: 'bubble' },
         msg._streaming
           ? React.createElement(React.Fragment, null,

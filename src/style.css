@@ -167,10 +167,6 @@
   cursor: grabbing;
 }
 
-.tab-item-icon {
-  font-size: 14px;
-  flex-shrink: 0;
-}
 
 .tab-item-info {
   flex: 1;
